@@ -35,11 +35,13 @@ def home():
 def tts():
     if request.method == "GET":
         text = request.args.get("text")
-        voice_key = request.args.get("voice", "male").lower()
+        voice_key = request.args.get("voice")  # 🔥 FIX
+        voice_key = voice_key.lower() if voice_key else None
     else:
         data = request.get_json()
         text = data.get("text") if data else None
-        voice_key = data.get("voice", "male").lower() if data else "male"
+        voice_key = data.get("voice") if data else None  # 🔥 FIX
+        voice_key = voice_key.lower() if voice_key else None
 
     if not text:
         return {"error": "Text required"}, 400
