@@ -8,17 +8,21 @@ app = Flask(__name__)
 
 VOICE = "en-IN-PrabhatNeural"
 
-# 🔥 Long text split function
+# 🔥 Long text split
 def split_text(text, max_length=3000):
     return [text[i:i+max_length] for i in range(0, len(text), max_length)]
 
-async def generate_audio_chunks(text, filename):
+async def generate_audio(text, filename):
     chunks = split_text(text)
-    
+
     with open(filename, "wb") as f:
         for chunk in chunks:
             communicate = edge_tts.Communicate(chunk, VOICE)
             await communicate.save(filename)
+
+@app.route("/")
+def home():
+    return "API Running 😎"
 
 @app.route("/v1/tts", methods=["GET", "POST"])
 def tts():
@@ -35,7 +39,7 @@ def tts():
 
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    loop.run_until_complete(generate_audio_chunks(text, filename))
+    loop.run_until_complete(generate_audio(text, filename))
 
     def generate():
         with open(filename, "rb") as f:
@@ -48,5 +52,7 @@ def tts():
 
     return Response(stream_with_context(generate()), mimetype="audio/mpeg")
 
+# 🔥 IMPORTANT FIX (Render ke liye)
 if __name__ == "__main__":
-    app.run()
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
